@@ -28,7 +28,7 @@ export function ListCandidato() {
             <UserCheck className="w-8 h-8" />
             Candidatos
           </h1>
-          <p className="text-gray-600 mt-1">Gerencie os candidatos do sistema eleitoral</p>
+          <p className="text-gray-600 mt-1">Gerencimento de Candidatos.</p>
         </div>
         <Button className="flex items-center gap-2" style={{ backgroundColor: '#66BB6A', color: 'white' }}>
           <Plus className="w-4 h-4" />
@@ -65,7 +65,7 @@ export function ListCandidato() {
                   <div>
                     <h3 className="text-lg">{candidato.nome}</h3>
                     <div className="flex gap-4 mt-1 text-sm text-gray-600">
-                      <span>Número: <strong>{candidato.numero}</strong></span>
+                      <span>Número: {candidato.numero}</span>
                       <span>-</span>
                       <span>{candidato.partido}</span>
                       <span>-</span>

@@ -26,7 +26,7 @@ export function ListCargo() {
             <Briefcase className="w-8 h-8" />
             Cargos
           </h1>
-          <p className="text-gray-600 mt-1">Gerencie os cargos eletivos disponíveis</p>
+          <p className="text-gray-600 mt-1">Gerenciamento dos cargos disponíveis para votação.</p>
         </div>
         <Button className="flex items-center gap-2" style={{ backgroundColor: '#66BB6A', color: 'white' }}>
           <Plus className="w-4 h-4" />
@@ -62,10 +62,11 @@ export function ListCargo() {
                   </div>
                   <div>
                     <h3 className="text-lg">{cargo.nome}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{cargo.descricao}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Vagas: <strong>{cargo.quantidadeVagas}</strong>
-                    </p>
+                    <div className="flex gap-4 mt-1 text-sm text-gray-600">
+                      <span>{cargo.descricao}</span>
+                      <span>-</span>
+                      <span>Vagas: {cargo.quantidadeVagas}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2">

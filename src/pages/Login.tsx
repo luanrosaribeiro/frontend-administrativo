@@ -49,7 +49,7 @@ export function Login() {
           <CardHeader className="space-y-1 pb-6" style={{ backgroundColor: '#66BB6A' }}>
             <CardTitle className="text-2xl text-center text-white">Acesso Administrativo</CardTitle>
             <CardDescription className="text-center text-white/90">
-              Digite suas credenciais para acessar o sistema
+              Digite seus dados para acessar o sistema
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">

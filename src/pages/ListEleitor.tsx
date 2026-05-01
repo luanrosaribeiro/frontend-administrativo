@@ -29,7 +29,7 @@ export function ListEleitor() {
             <Users className="w-8 h-8" />
             Eleitores
           </h1>
-          <p className="text-gray-600 mt-1">Gerencie os eleitores cadastrados no sistema</p>
+          <p className="text-gray-600 mt-1">Gerenciamento de eleitores.</p>
         </div>
         <Button className="flex items-center gap-2" style={{ backgroundColor: '#66BB6A', color: 'white' }}>
           <Plus className="w-4 h-4" />

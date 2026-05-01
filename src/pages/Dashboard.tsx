@@ -7,10 +7,10 @@ export function Dashboard() {
   const navigate = useNavigate();
 
   const menuItems = [
-    { path: "/dashboard/candidato", label: "Candidato", icon: UserCheck },
-    { path: "/dashboard/partido", label: "Partido", icon: Building2 },
-    { path: "/dashboard/cargo", label: "Cargo", icon: Briefcase },
-    { path: "/dashboard/eleitor", label: "Eleitor", icon: Users },
+    { path: "/dashboard/candidato", label: "Candidatos", icon: UserCheck },
+    { path: "/dashboard/partido", label: "Partidos", icon: Building2 },
+    { path: "/dashboard/cargo", label: "Cargos", icon: Briefcase },
+    { path: "/dashboard/eleitor", label: "Eleitores", icon: Users },
   ];
 
   const handleLogout = () => {

@@ -27,7 +27,7 @@ export function ListPartido() {
             <Building2 className="w-8 h-8" />
             Partidos
           </h1>
-          <p className="text-gray-600 mt-1">Gerencie os partidos políticos registrados</p>
+          <p className="text-gray-600 mt-1">Gerenciamento de partidos.</p>
         </div>
         <Button className="flex items-center gap-2" style={{ backgroundColor: '#66BB6A', color: 'white' }}>
           <Plus className="w-4 h-4" />
@@ -64,7 +64,7 @@ export function ListPartido() {
                   <div>
                     <h3 className="text-lg">{partido.nome}</h3>
                     <div className="flex gap-4 mt-1 text-sm text-gray-600">
-                      <span>Número: <strong>{partido.numero}</strong></span>
+                      <span>Número: {partido.numero}</span>
                       <span>-</span>
                       <span>Presidente: {partido.presidente}</span>
                     </div>
