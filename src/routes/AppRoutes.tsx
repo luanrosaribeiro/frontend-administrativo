@@ -1,10 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Dashboard } from '../pages/Dashboard';
 import { Login } from '../pages/Login';
-import { ListCandidato } from '../pages/ListCandidato';
-import { ListPartido } from '../pages/ListPartido';
-import { ListCargo } from '../pages/ListCargo';
-import { ListEleitor } from '../pages/ListEleitor';
+import { ListCandidato } from '../pages/Candidato/List';
+import { ListPartido } from '../pages/Partido/List';
+import { ListCargo } from '../pages/Cargo/List';
+import { ListEleitor } from '../pages/Eleitor/List';
 import { PrivateRoute } from './PrivateRoute';
 
 export const router = createBrowserRouter([

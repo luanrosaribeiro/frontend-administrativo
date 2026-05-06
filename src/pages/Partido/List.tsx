@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Card, CardContent } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
+import { Card, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { Plus, Search, Edit, Trash2, Building2 } from "lucide-react";
 
 interface Partido {
@@ -18,6 +18,16 @@ export function ListPartido() {
     { id: 2, nome: "Partido Popular", sigla: "PP", numero: "34", presidente: "Ana Costa" },
     { id: 3, nome: "Partido Liberal", sigla: "PL", numero: "56", presidente: "Roberto Santos" },
   ]);
+
+  const [busca, setBusca] = useState("");
+
+  const partidosFiltrados = partidos.filter((partido) => {
+    const termo = busca.toLowerCase().trim();
+    return (
+      partido.nome.toLowerCase().includes(termo) ||
+      partido.sigla.includes(termo)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -44,10 +54,11 @@ export function ListPartido() {
                 <Input
                   placeholder="Buscar partido por nome ou sigla..."
                   className="pl-10"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
                 />
               </div>
             </div>
-            <Button variant="outline">Filtrar</Button>
           </div>
         </CardContent>
       </Card>
