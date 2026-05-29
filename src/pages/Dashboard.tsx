@@ -1,5 +1,14 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
-import { Users, Building2, Briefcase, UserCheck, LogOut, ShieldCheck } from "lucide-react";
+import {
+  Briefcase,
+  Building2,
+  LogOut,
+  MapPin,
+  ShieldCheck,
+  UserCheck,
+  UserCog,
+  Users,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export function Dashboard() {
@@ -11,15 +20,19 @@ export function Dashboard() {
     { path: "/dashboard/partido", label: "Partidos", icon: Building2 },
     { path: "/dashboard/cargo", label: "Cargos", icon: Briefcase },
     { path: "/dashboard/eleitor", label: "Eleitores", icon: Users },
+    { path: "/dashboard/zona-eleitoral", label: "Zonas", icon: MapPin },
+    { path: "/dashboard/usuario", label: "Usuários", icon: UserCog },
   ];
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
     navigate("/");
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside className="w-64 shadow-lg flex flex-col" style={{ backgroundColor: '#66BB6A' }}>
+      <aside className="w-64 shadow-lg flex flex-col" style={{ backgroundColor: "#66BB6A" }}>
         <div className="p-6 border-b border-white/20">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -35,17 +48,18 @@ export function Dashboard() {
         <nav className="flex-1 p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-                           (location.pathname === "/dashboard" && item.path === "/dashboard/candidato");
-            
+            const isActive =
+              location.pathname === item.path ||
+              (location.pathname === "/dashboard" && item.path === "/dashboard/candidato");
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                   isActive
-                    ? 'bg-white text-[#66BB6A] shadow-md'
-                    : 'text-white hover:bg-white/10'
+                    ? "bg-white text-[#66BB6A] shadow-md"
+                    : "text-white hover:bg-white/10"
                 }`}
               >
                 <Icon className="w-5 h-5" />

@@ -1,60 +1,60 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { AlertCircle, FileText, MapPinned, Save, User, X } from "lucide-react";
+import { AlertCircle, Mail, Save, User, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import type { Eleitor, EleitorFormPayload } from "../../services/eleitorService";
+import type { Usuario, UsuarioPayload } from "../../services/usuarioService";
 
-interface EleitorFormProps {
-  eleitor?: Eleitor | null;
+interface UsuarioFormProps {
+  usuario?: Usuario | null;
   isSubmitting: boolean;
   onCancel: () => void;
-  onSubmit: (eleitor: EleitorFormPayload) => Promise<void>;
+  onSubmit: (usuario: UsuarioPayload) => Promise<void>;
 }
 
-interface EleitorFormData {
+interface UsuarioFormData {
   nome: string;
-  cpf: string;
-  titulo: string;
-  secaoId: number;
+  email: string;
+  senhaHash: string;
+  perfil: string;
 }
 
-export function EleitorForm({
-  eleitor,
+export function UsuarioForm({
+  usuario,
   isSubmitting,
   onCancel,
   onSubmit,
-}: EleitorFormProps) {
+}: UsuarioFormProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EleitorFormData>({
+  } = useForm<UsuarioFormData>({
     defaultValues: {
       nome: "",
-      cpf: "",
-      titulo: "",
-      secaoId: 0,
+      email: "",
+      senhaHash: "",
+      perfil: "ADMIN",
     },
   });
 
   useEffect(() => {
     reset({
-      nome: eleitor?.nome ?? "",
-      cpf: eleitor?.cpf ?? "",
-      titulo: eleitor?.titulo ?? "",
-      secaoId: eleitor?.secao?.id ?? 0,
+      nome: usuario?.nome ?? "",
+      email: usuario?.email ?? "",
+      senhaHash: "",
+      perfil: usuario?.perfil ?? "ADMIN",
     });
-  }, [eleitor, reset]);
+  }, [reset, usuario]);
 
-  const submitForm = async (data: EleitorFormData) => {
+  const submitForm = async (data: UsuarioFormData) => {
     await onSubmit({
       nome: data.nome.trim(),
-      cpf: data.cpf.trim(),
-      titulo: data.titulo.trim(),
-      secaoId: Number(data.secaoId),
+      email: data.email.trim(),
+      senhaHash: data.senhaHash,
+      perfil: data.perfil.trim().toUpperCase(),
     });
   };
 
@@ -68,7 +68,7 @@ export function EleitorForm({
           </Label>
           <Input
             id="nome"
-            placeholder="Nome do eleitor"
+            placeholder="Nome do usuário"
             className="h-11"
             {...register("nome", {
               required: "Nome é obrigatório",
@@ -84,27 +84,27 @@ export function EleitorForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cpf" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
-            <FileText className="w-4 h-4" />
-            CPF
+          <Label htmlFor="email" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
+            <Mail className="w-4 h-4" />
+            E-mail
           </Label>
           <Input
-            id="cpf"
-            placeholder="Somente números"
+            id="email"
+            type="email"
+            placeholder="usuario@email.com"
             className="h-11"
-            maxLength={11}
-            {...register("cpf", {
-              required: "CPF é obrigatório",
+            {...register("email", {
+              required: "E-mail é obrigatório",
               pattern: {
-                value: /^\d{11}$/,
-                message: "Informe 11 números",
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Informe um e-mail válido",
               },
             })}
           />
-          {errors.cpf && (
+          {errors.email && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
-              {errors.cpf.message}
+              {errors.email.message}
             </p>
           )}
         </div>
@@ -112,54 +112,41 @@ export function EleitorForm({
 
       <div className="grid gap-5 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="titulo" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
-            <FileText className="w-4 h-4" />
-            Título
+          <Label htmlFor="senhaHash" style={{ color: "#66BB6A" }}>
+            Senha
           </Label>
           <Input
-            id="titulo"
-            placeholder="Título de eleitor"
+            id="senhaHash"
+            type="password"
+            placeholder="Senha de acesso"
             className="h-11"
-            maxLength={13}
-            {...register("titulo", {
-              required: "Título é obrigatório",
-              pattern: {
-                value: /^\d{1,13}$/,
-                message: "Informe até 13 números",
-              },
+            {...register("senhaHash", {
+              required: "Senha é obrigatória",
+              minLength: { value: 4, message: "Informe pelo menos 4 caracteres" },
             })}
           />
-          {errors.titulo && (
+          {errors.senhaHash && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
-              {errors.titulo.message}
+              {errors.senhaHash.message}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="secaoId" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
-            <MapPinned className="w-4 h-4" />
-            Seção
+          <Label htmlFor="perfil" style={{ color: "#66BB6A" }}>
+            Perfil
           </Label>
-          <Input
-            id="secaoId"
-            type="number"
-            min={1}
-            placeholder="ID da seção"
-            className="h-11"
-            {...register("secaoId", {
-              required: "Seção é obrigatória",
-              valueAsNumber: true,
-              min: { value: 1, message: "Informe o ID da seção" },
+          <select
+            id="perfil"
+            className="border-input bg-input-background flex h-11 w-full rounded-md border px-3 py-2 text-base outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm"
+            {...register("perfil", {
+              required: "Perfil é obrigatório",
             })}
-          />
-          {errors.secaoId && (
-            <p className="text-sm text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {errors.secaoId.message}
-            </p>
-          )}
+          >
+            <option value="ADMIN">ADMIN</option>
+            <option value="OPERADOR">OPERADOR</option>
+          </select>
         </div>
       </div>
 
