@@ -5,6 +5,9 @@ import { ListCandidato } from '../pages/Candidato/List';
 import { ListPartido } from '../pages/Partido/List';
 import { ListCargo } from '../pages/Cargo/List';
 import { ListEleitor } from '../pages/Eleitor/List';
+import { ListMesario } from '../pages/Mesario/List';
+import { ListSecaoEleitoral } from '../pages/SecaoEleitoral/List';
+import { ListUrna } from '../pages/Urna/List';
 import { ListUsuario } from '../pages/Usuario/List';
 import { ListZonaEleitoral } from '../pages/ZonaEleitoral/List';
 import { PrivateRoute } from './PrivateRoute';
@@ -34,7 +37,10 @@ export const router = createBrowserRouter([
       { path: 'partido', element: <ListPartido /> },
       { path: 'cargo', element: <ListCargo /> },
       { path: 'eleitor', element: <ListEleitor /> },
+      { path: 'mesario', element: <ListMesario /> },
+      { path: 'secao-eleitoral', element: <ListSecaoEleitoral /> },
       { path: 'zona-eleitoral', element: <ListZonaEleitoral /> },
+      { path: 'urna', element: <ListUrna /> },
       { path: 'usuario', element: <ListUsuario /> },
     ],
   },

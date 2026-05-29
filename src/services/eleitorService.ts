@@ -2,6 +2,7 @@ import { apiRequest } from "./api";
 
 type SecaoEleitoralResumo = {
   id?: number;
+  local?: string;
   numero?: string | number;
   nome?: string;
   zona?: {
@@ -81,6 +82,10 @@ export function obterNomeSecao(secao?: SecaoEleitoralResumo) {
 
   if (secao.nome) {
     return secao.nome;
+  }
+
+  if (secao.local) {
+    return secao.local;
   }
 
   if (secao.numero !== undefined) {

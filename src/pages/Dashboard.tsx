@@ -2,8 +2,11 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import {
   Briefcase,
   Building2,
+  ClipboardCheck,
   LogOut,
   MapPin,
+  MapPinned,
+  Power,
   ShieldCheck,
   UserCheck,
   UserCog,
@@ -20,7 +23,10 @@ export function Dashboard() {
     { path: "/dashboard/partido", label: "Partidos", icon: Building2 },
     { path: "/dashboard/cargo", label: "Cargos", icon: Briefcase },
     { path: "/dashboard/eleitor", label: "Eleitores", icon: Users },
+    { path: "/dashboard/mesario", label: "Mesários", icon: ClipboardCheck },
+    { path: "/dashboard/secao-eleitoral", label: "Seções", icon: MapPinned },
     { path: "/dashboard/zona-eleitoral", label: "Zonas", icon: MapPin },
+    { path: "/dashboard/urna", label: "Urnas", icon: Power },
     { path: "/dashboard/usuario", label: "Usuários", icon: UserCog },
   ];
 
