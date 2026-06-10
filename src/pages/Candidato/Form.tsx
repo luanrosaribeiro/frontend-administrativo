@@ -9,6 +9,7 @@ import {
   type Candidato,
   type CandidatoFormPayload,
 } from "../../services/candidatoService";
+import { listarEleicoes, obterNomeEleicao, type Eleicao } from "../../services/eleicaoService";
 import { listarPartidos, type Partido } from "../../services/partidoService";
 
 interface CandidatoFormProps {
@@ -34,6 +35,7 @@ export function CandidatoForm({
 }: CandidatoFormProps) {
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [cargos, setCargos] = useState<Cargo[]>([]);
+  const [eleicoes, setEleicoes] = useState<Eleicao[]>([]);
   const [erroListas, setErroListas] = useState("");
 
   const {
@@ -56,18 +58,20 @@ export function CandidatoForm({
       setErroListas("");
 
       try {
-        const [partidosDados, cargosDados] = await Promise.all([
+        const [partidosDados, cargosDados, eleicoesDados] = await Promise.all([
           listarPartidos(),
           listarCargos(),
+          listarEleicoes(),
         ]);
 
         setPartidos(partidosDados);
         setCargos(cargosDados);
+        setEleicoes(eleicoesDados);
       } catch (error) {
         setErroListas(
           error instanceof Error
             ? error.message
-            : "Erro ao carregar partidos e cargos.",
+            : "Erro ao carregar partidos, cargos e eleições.",
         );
       }
     }
@@ -75,7 +79,27 @@ export function CandidatoForm({
     void carregarListas();
   }, []);
 
+  const obterValoresFormulario = (candidatoAtual?: Candidato | null): CandidatoFormData => ({
+    nome: candidatoAtual?.nome ?? "",
+    numero: candidatoAtual?.numero ?? 0,
+    partidoId: candidatoAtual?.partido?.id ?? 0,
+    cargoId: candidatoAtual?.cargo?.id ?? 0,
+    eleicaoId: candidatoAtual?.eleicao?.id ?? 0,
+  });
+
   useEffect(() => {
+    reset(obterValoresFormulario(candidato));
+  }, [candidato, reset]);
+
+  useEffect(() => {
+    if (!candidato) {
+      return;
+    }
+
+    if (partidos.length === 0 || cargos.length === 0 || eleicoes.length === 0) {
+      return;
+    }
+
     reset({
       nome: candidato?.nome ?? "",
       numero: candidato?.numero ?? 0,
@@ -83,7 +107,7 @@ export function CandidatoForm({
       cargoId: candidato?.cargo?.id ?? 0,
       eleicaoId: candidato?.eleicao?.id ?? 0,
     });
-  }, [candidato, reset]);
+  }, [candidato, partidos.length, cargos.length, eleicoes.length, reset]);
 
   const submitForm = async (data: CandidatoFormData) => {
     await onSubmit({
@@ -220,18 +244,22 @@ export function CandidatoForm({
             <CalendarDays className="w-4 h-4" />
             Eleição
           </Label>
-          <Input
+          <select
             id="eleicaoId"
-            type="number"
-            min={1}
-            placeholder="ID"
-            className="h-11"
+            className={selectClassName}
             {...register("eleicaoId", {
               required: "Eleição é obrigatória",
               valueAsNumber: true,
-              min: { value: 1, message: "Informe o ID da eleição" },
+              min: { value: 1, message: "Selecione uma eleição" },
             })}
-          />
+          >
+            <option value={0}>Selecione</option>
+            {eleicoes.map((eleicao) => (
+              <option key={eleicao.id} value={eleicao.id}>
+                {obterNomeEleicao(eleicao)}
+              </option>
+            ))}
+          </select>
           {errors.eleicaoId && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />

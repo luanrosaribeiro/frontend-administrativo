@@ -1,10 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AlertCircle, FileText, MapPinned, Save, User, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import type { Eleitor, EleitorFormPayload } from "../../services/eleitorService";
+import {
+  listarSecoesEleitorais,
+  obterNomeZonaSecao,
+  type SecaoEleitoral,
+} from "../../services/secaoEleitoralService";
 
 interface EleitorFormProps {
   eleitor?: Eleitor | null;
@@ -26,6 +31,9 @@ export function EleitorForm({
   onCancel,
   onSubmit,
 }: EleitorFormProps) {
+  const [secoes, setSecoes] = useState<SecaoEleitoral[]>([]);
+  const [erroSecoes, setErroSecoes] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -40,14 +48,41 @@ export function EleitorForm({
     },
   });
 
+  const obterValoresFormulario = (eleitorAtual?: Eleitor | null): EleitorFormData => ({
+    nome: eleitorAtual?.nome ?? "",
+    cpf: eleitorAtual?.cpf ?? "",
+    titulo: eleitorAtual?.titulo ?? "",
+    secaoId: eleitorAtual?.secao?.id ?? 0,
+  });
+
   useEffect(() => {
-    reset({
-      nome: eleitor?.nome ?? "",
-      cpf: eleitor?.cpf ?? "",
-      titulo: eleitor?.titulo ?? "",
-      secaoId: eleitor?.secao?.id ?? 0,
-    });
+    async function carregarSecoes() {
+      setErroSecoes("");
+
+      try {
+        const dados = await listarSecoesEleitorais();
+        setSecoes(dados);
+      } catch (error) {
+        setErroSecoes(
+          error instanceof Error ? error.message : "Erro ao carregar seções eleitorais.",
+        );
+      }
+    }
+
+    void carregarSecoes();
+  }, []);
+
+  useEffect(() => {
+    reset(obterValoresFormulario(eleitor));
   }, [eleitor, reset]);
+
+  useEffect(() => {
+    if (!eleitor || secoes.length === 0) {
+      return;
+    }
+
+    reset(obterValoresFormulario(eleitor));
+  }, [eleitor, secoes.length, reset]);
 
   const submitForm = async (data: EleitorFormData) => {
     await onSubmit({
@@ -58,8 +93,20 @@ export function EleitorForm({
     });
   };
 
+  const selectClassName =
+    "border-input bg-input-background flex h-11 w-full rounded-md border px-3 py-2 text-base outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm";
+
   return (
     <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
+      {erroSecoes && (
+        <div className="p-3 rounded-md bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            {erroSecoes}
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-5 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="nome" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
@@ -142,18 +189,29 @@ export function EleitorForm({
             <MapPinned className="w-4 h-4" />
             Seção
           </Label>
-          <Input
+          <select
             id="secaoId"
-            type="number"
-            min={1}
-            placeholder="ID da seção"
-            className="h-11"
+            className={selectClassName}
             {...register("secaoId", {
               required: "Seção é obrigatória",
               valueAsNumber: true,
-              min: { value: 1, message: "Informe o ID da seção" },
+              min: { value: 1, message: "Selecione uma seção" },
             })}
-          />
+          >
+            <option value={0}>
+              {secoes.length > 0 ? "Selecione" : "Nenhuma seção cadastrada"}
+            </option>
+            {secoes.map((secao) => {
+              const zona = obterNomeZonaSecao(secao.zona);
+              const nomeSecao = secao.local || (secao.id ? `Seção #${secao.id}` : "Seção");
+
+              return (
+                <option key={secao.id} value={secao.id}>
+                  {zona ? `${nomeSecao} - ${zona}` : nomeSecao}
+                </option>
+              );
+            })}
+          </select>
           {errors.secaoId && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />

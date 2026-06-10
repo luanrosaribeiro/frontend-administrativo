@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AlertCircle, MapPin, MapPinned, Save, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -8,6 +8,7 @@ import type {
   SecaoEleitoral,
   SecaoEleitoralFormPayload,
 } from "../../services/secaoEleitoralService";
+import { listarZonasEleitorais, type ZonaEleitoral } from "../../services/zonaEleitoralService";
 
 interface SecaoEleitoralFormProps {
   secao?: SecaoEleitoral | null;
@@ -27,6 +28,9 @@ export function SecaoEleitoralForm({
   onCancel,
   onSubmit,
 }: SecaoEleitoralFormProps) {
+  const [zonas, setZonas] = useState<ZonaEleitoral[]>([]);
+  const [erroZonas, setErroZonas] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -39,12 +43,39 @@ export function SecaoEleitoralForm({
     },
   });
 
+  const obterValoresFormulario = (secaoAtual?: SecaoEleitoral | null): SecaoEleitoralFormData => ({
+    local: secaoAtual?.local ?? "",
+    zonaId: secaoAtual?.zona?.id ?? 0,
+  });
+
   useEffect(() => {
-    reset({
-      local: secao?.local ?? "",
-      zonaId: secao?.zona?.id ?? 0,
-    });
+    async function carregarZonas() {
+      setErroZonas("");
+
+      try {
+        const dados = await listarZonasEleitorais();
+        setZonas(dados);
+      } catch (error) {
+        setErroZonas(
+          error instanceof Error ? error.message : "Erro ao carregar zonas eleitorais.",
+        );
+      }
+    }
+
+    void carregarZonas();
+  }, []);
+
+  useEffect(() => {
+    reset(obterValoresFormulario(secao));
   }, [reset, secao]);
+
+  useEffect(() => {
+    if (!secao || zonas.length === 0) {
+      return;
+    }
+
+    reset(obterValoresFormulario(secao));
+  }, [reset, secao, zonas.length]);
 
   const submitForm = async (data: SecaoEleitoralFormData) => {
     await onSubmit({
@@ -53,8 +84,20 @@ export function SecaoEleitoralForm({
     });
   };
 
+  const selectClassName =
+    "border-input bg-input-background flex h-11 w-full rounded-md border px-3 py-2 text-base outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm";
+
   return (
     <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
+      {erroZonas && (
+        <div className="p-3 rounded-md bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            {erroZonas}
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-5 md:grid-cols-[1fr_180px]">
         <div className="space-y-2">
           <Label htmlFor="local" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
@@ -84,18 +127,24 @@ export function SecaoEleitoralForm({
             <MapPin className="w-4 h-4" />
             Zona
           </Label>
-          <Input
+          <select
             id="zonaId"
-            type="number"
-            min={1}
-            placeholder="ID da zona"
-            className="h-11"
+            className={selectClassName}
             {...register("zonaId", {
               required: "Zona é obrigatória",
               valueAsNumber: true,
-              min: { value: 1, message: "Informe o ID da zona" },
+              min: { value: 1, message: "Selecione uma zona" },
             })}
-          />
+          >
+            <option value={0}>
+              {zonas.length > 0 ? "Selecione" : "Nenhuma zona cadastrada"}
+            </option>
+            {zonas.map((zona) => (
+              <option key={zona.id} value={zona.id}>
+                Zona {zona.numero} - {zona.cidade}
+              </option>
+            ))}
+          </select>
           {errors.zonaId && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />

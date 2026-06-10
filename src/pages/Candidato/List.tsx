@@ -10,7 +10,7 @@ import {
   listarCandidatos,
   obterNomeRelacao,
   type Candidato,
-  type CandidatoPayload,
+  type CandidatoFormPayload,
 } from "../../services/candidatoService";
 import { CandidatoForm } from "./Form";
 
@@ -54,7 +54,6 @@ export function ListCandidato() {
 
       return (
         candidato.nome.toLowerCase().includes(termo) ||
-        candidato.numero.includes(termo) ||
         partido.includes(termo) ||
         cargo.includes(termo) ||
         String(candidato.numero).includes(termo)
@@ -77,7 +76,7 @@ export function ListCandidato() {
     setCandidatoSelecionado(null);
   };
 
-  const salvarCandidato = async (payload: CandidatoPayload) => {
+  const salvarCandidato = async (payload: CandidatoFormPayload) => {
     setIsSubmitting(true);
     setErro("");
 
