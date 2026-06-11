@@ -1,10 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AlertCircle, CalendarDays, Hash, MapPinned, Power, Save, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import type { Urna, UrnaFormPayload } from "../../services/urnaService";
+import { listarEleicoes, obterNomeEleicao, type Eleicao } from "../../services/eleicaoService";
+import {
+  listarSecoesEleitorais,
+  obterNomeZonaSecao,
+  type SecaoEleitoral,
+} from "../../services/secaoEleitoralService";
 
 interface UrnaFormProps {
   urna?: Urna | null;
@@ -26,6 +32,10 @@ export function UrnaForm({
   onCancel,
   onSubmit,
 }: UrnaFormProps) {
+  const [secoes, setSecoes] = useState<SecaoEleitoral[]>([]);
+  const [eleicoes, setEleicoes] = useState<Eleicao[]>([]);
+  const [erroListas, setErroListas] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -40,14 +50,46 @@ export function UrnaForm({
     },
   });
 
+  const obterValoresFormulario = (urnaAtual?: Urna | null): UrnaFormData => ({
+    numero: urnaAtual?.numero ?? 0,
+    status: urnaAtual?.status ?? "",
+    secaoId: urnaAtual?.secao?.id ?? 0,
+    eleicaoId: urnaAtual?.eleicao?.id ?? 0,
+  });
+
   useEffect(() => {
-    reset({
-      numero: urna?.numero ?? 0,
-      status: urna?.status ?? "",
-      secaoId: urna?.secao?.id ?? 0,
-      eleicaoId: urna?.eleicao?.id ?? 0,
-    });
+    async function carregarListas() {
+      setErroListas("");
+
+      try {
+        const [secoesDados, eleicoesDados] = await Promise.all([
+          listarSecoesEleitorais(),
+          listarEleicoes(),
+        ]);
+
+        setSecoes(secoesDados);
+        setEleicoes(eleicoesDados);
+      } catch (error) {
+        setErroListas(
+          error instanceof Error ? error.message : "Erro ao carregar seções e eleições.",
+        );
+      }
+    }
+
+    void carregarListas();
+  }, []);
+
+  useEffect(() => {
+    reset(obterValoresFormulario(urna));
   }, [reset, urna]);
+
+  useEffect(() => {
+    if (!urna || secoes.length === 0 || eleicoes.length === 0) {
+      return;
+    }
+
+    reset(obterValoresFormulario(urna));
+  }, [reset, urna, secoes.length, eleicoes.length]);
 
   const submitForm = async (data: UrnaFormData) => {
     await onSubmit({
@@ -58,8 +100,20 @@ export function UrnaForm({
     });
   };
 
+  const selectClassName =
+    "border-input bg-input-background flex h-11 w-full rounded-md border px-3 py-2 text-base outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm";
+
   return (
     <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
+      {erroListas && (
+        <div className="p-3 rounded-md bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            {erroListas}
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-5 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="numero" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
@@ -91,16 +145,17 @@ export function UrnaForm({
             <Power className="w-4 h-4" />
             Status
           </Label>
-          <Input
+          <select
             id="status"
-            placeholder="Ex.: ATIVA"
-            className="h-11"
-            maxLength={20}
+            className={selectClassName}
             {...register("status", {
               required: "Status é obrigatório",
-              minLength: { value: 2, message: "Informe pelo menos 2 caracteres" },
             })}
-          />
+          >
+            <option value="">Selecione</option>
+            <option value="ATIVA">Ativa</option>
+            <option value="INATIVA">Inativa</option>
+          </select>
           {errors.status && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
@@ -116,18 +171,29 @@ export function UrnaForm({
             <MapPinned className="w-4 h-4" />
             Seção
           </Label>
-          <Input
+          <select
             id="secaoId"
-            type="number"
-            min={1}
-            placeholder="ID da seção"
-            className="h-11"
+            className={selectClassName}
             {...register("secaoId", {
               required: "Seção é obrigatória",
               valueAsNumber: true,
-              min: { value: 1, message: "Informe o ID da seção" },
+              min: { value: 1, message: "Selecione uma seção" },
             })}
-          />
+          >
+            <option value={0}>
+              {secoes.length > 0 ? "Selecione" : "Nenhuma seção cadastrada"}
+            </option>
+            {secoes.map((secao) => {
+              const zona = obterNomeZonaSecao(secao.zona);
+              const nomeSecao = secao.local || (secao.id ? `Seção #${secao.id}` : "Seção");
+
+              return (
+                <option key={secao.id} value={secao.id}>
+                  {zona ? `${nomeSecao} - ${zona}` : nomeSecao}
+                </option>
+              );
+            })}
+          </select>
           {errors.secaoId && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
@@ -141,18 +207,24 @@ export function UrnaForm({
             <CalendarDays className="w-4 h-4" />
             Eleição
           </Label>
-          <Input
+          <select
             id="eleicaoId"
-            type="number"
-            min={1}
-            placeholder="ID da eleição"
-            className="h-11"
+            className={selectClassName}
             {...register("eleicaoId", {
               required: "Eleição é obrigatória",
               valueAsNumber: true,
-              min: { value: 1, message: "Informe o ID da eleição" },
+              min: { value: 1, message: "Selecione uma eleição" },
             })}
-          />
+          >
+            <option value={0}>
+              {eleicoes.length > 0 ? "Selecione" : "Nenhuma eleição cadastrada"}
+            </option>
+            {eleicoes.map((eleicao) => (
+              <option key={eleicao.id} value={eleicao.id}>
+                {obterNomeEleicao(eleicao)}
+              </option>
+            ))}
+          </select>
           {errors.eleicaoId && (
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
