@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
+const DEFAULT_PRODUCTION_API_URL = "https://modulo-urna-production.up.railway.app";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? DEFAULT_PRODUCTION_API_URL : "");
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
