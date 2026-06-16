@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { AlertCircle, Lock, ShieldCheck, User } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -17,6 +17,7 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     register,
@@ -30,9 +31,11 @@ export function Login() {
 
     try {
       const usuario = await loginUsuario(data.email, data.senha);
+      const destino = location.state?.from?.pathname ?? "/dashboard";
+
       localStorage.setItem("token", JSON.stringify(usuario));
       localStorage.setItem("usuario", JSON.stringify(usuario));
-      navigate("/dashboard");
+      navigate(destino, { replace: true });
     } catch (error) {
       setLoginError(
         error instanceof Error

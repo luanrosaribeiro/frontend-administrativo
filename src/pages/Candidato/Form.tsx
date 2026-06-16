@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { AlertCircle, CalendarDays, Hash, Save, UserCheck, X } from "lucide-react";
+import { AlertCircle, CalendarDays, Hash, MapPin, Save, UserCheck, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -11,6 +11,7 @@ import {
 } from "../../services/candidatoService";
 import { listarEleicoes, obterNomeEleicao, type Eleicao } from "../../services/eleicaoService";
 import { listarPartidos, type Partido } from "../../services/partidoService";
+import { listarZonasEleitorais, type ZonaEleitoral } from "../../services/zonaEleitoralService";
 
 interface CandidatoFormProps {
   candidato?: Candidato | null;
@@ -25,6 +26,7 @@ interface CandidatoFormData {
   partidoId: number;
   cargoId: number;
   eleicaoId: number;
+  zonaId: number;
 }
 
 export function CandidatoForm({
@@ -36,6 +38,7 @@ export function CandidatoForm({
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [cargos, setCargos] = useState<Cargo[]>([]);
   const [eleicoes, setEleicoes] = useState<Eleicao[]>([]);
+  const [zonas, setZonas] = useState<ZonaEleitoral[]>([]);
   const [erroListas, setErroListas] = useState("");
 
   const {
@@ -50,6 +53,7 @@ export function CandidatoForm({
       partidoId: 0,
       cargoId: 0,
       eleicaoId: 0,
+      zonaId: 0,
     },
   });
 
@@ -58,20 +62,22 @@ export function CandidatoForm({
       setErroListas("");
 
       try {
-        const [partidosDados, cargosDados, eleicoesDados] = await Promise.all([
+        const [partidosDados, cargosDados, eleicoesDados, zonasDados] = await Promise.all([
           listarPartidos(),
           listarCargos(),
           listarEleicoes(),
+          listarZonasEleitorais(),
         ]);
 
         setPartidos(partidosDados);
         setCargos(cargosDados);
         setEleicoes(eleicoesDados);
+        setZonas(zonasDados);
       } catch (error) {
         setErroListas(
           error instanceof Error
             ? error.message
-            : "Erro ao carregar partidos, cargos e eleições.",
+            : "Erro ao carregar partidos, cargos, eleições e zonas.",
         );
       }
     }
@@ -85,6 +91,7 @@ export function CandidatoForm({
     partidoId: candidatoAtual?.partido?.id ?? 0,
     cargoId: candidatoAtual?.cargo?.id ?? 0,
     eleicaoId: candidatoAtual?.eleicao?.id ?? 0,
+    zonaId: candidatoAtual?.zona?.id ?? 0,
   });
 
   useEffect(() => {
@@ -96,18 +103,12 @@ export function CandidatoForm({
       return;
     }
 
-    if (partidos.length === 0 || cargos.length === 0 || eleicoes.length === 0) {
+    if (partidos.length === 0 || cargos.length === 0 || eleicoes.length === 0 || zonas.length === 0) {
       return;
     }
 
-    reset({
-      nome: candidato?.nome ?? "",
-      numero: candidato?.numero ?? 0,
-      partidoId: candidato?.partido?.id ?? 0,
-      cargoId: candidato?.cargo?.id ?? 0,
-      eleicaoId: candidato?.eleicao?.id ?? 0,
-    });
-  }, [candidato, partidos.length, cargos.length, eleicoes.length, reset]);
+    reset(obterValoresFormulario(candidato));
+  }, [candidato, partidos.length, cargos.length, eleicoes.length, zonas.length, reset]);
 
   const submitForm = async (data: CandidatoFormData) => {
     await onSubmit({
@@ -116,6 +117,7 @@ export function CandidatoForm({
       partidoId: Number(data.partidoId),
       cargoId: Number(data.cargoId),
       eleicaoId: Number(data.eleicaoId),
+      zonaId: Number(data.zonaId),
     });
   };
 
@@ -182,7 +184,7 @@ export function CandidatoForm({
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <Label htmlFor="partidoId" style={{ color: "#66BB6A" }}>
             Partido
@@ -264,6 +266,37 @@ export function CandidatoForm({
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               {errors.eleicaoId.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="zonaId" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
+            <MapPin className="w-4 h-4" />
+            Zona
+          </Label>
+          <select
+            id="zonaId"
+            className={selectClassName}
+            {...register("zonaId", {
+              required: "Zona é obrigatória",
+              valueAsNumber: true,
+              min: { value: 1, message: "Selecione uma zona" },
+            })}
+          >
+            <option value={0}>
+              {zonas.length > 0 ? "Selecione" : "Nenhuma zona cadastrada"}
+            </option>
+            {zonas.map((zona) => (
+              <option key={zona.id} value={zona.id}>
+                Zona {zona.numero} - {zona.cidade}
+              </option>
+            ))}
+          </select>
+          {errors.zonaId && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.zonaId.message}
             </p>
           )}
         </div>

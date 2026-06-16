@@ -6,6 +6,13 @@ type RelacaoNome = {
   sigla?: string;
 };
 
+type ZonaEleitoralResumo = {
+  id?: number;
+  numero?: string | number;
+  nome?: string;
+  cidade?: string;
+};
+
 type RelacaoId = {
   id: number;
 };
@@ -17,6 +24,7 @@ export interface Candidato {
   partido: RelacaoNome;
   cargo: RelacaoNome;
   eleicao: RelacaoNome;
+  zona?: ZonaEleitoralResumo;
 }
 
 export interface CandidatoFormPayload {
@@ -25,6 +33,7 @@ export interface CandidatoFormPayload {
   partidoId: number;
   cargoId: number;
   eleicaoId: number;
+  zonaId: number;
 }
 
 interface CandidatoApiPayload {
@@ -33,6 +42,7 @@ interface CandidatoApiPayload {
   partido: RelacaoId;
   cargo: RelacaoId;
   eleicao: RelacaoId;
+  zona: RelacaoId;
 }
 
 function montarPayload(candidato: CandidatoFormPayload): CandidatoApiPayload {
@@ -42,6 +52,7 @@ function montarPayload(candidato: CandidatoFormPayload): CandidatoApiPayload {
     partido: { id: candidato.partidoId },
     cargo: { id: candidato.cargoId },
     eleicao: { id: candidato.eleicaoId },
+    zona: { id: candidato.zonaId },
   };
 }
 
@@ -75,4 +86,16 @@ export function obterNomeRelacao(valor: RelacaoNome | undefined) {
   }
 
   return valor.nome ?? valor.sigla ?? "";
+}
+
+export function obterNomeZona(valor: ZonaEleitoralResumo | undefined) {
+  if (!valor) {
+    return "";
+  }
+
+  if (valor.cidade && valor.numero !== undefined) {
+    return `Zona ${valor.numero} - ${valor.cidade}`;
+  }
+
+  return valor.nome ?? (valor.numero !== undefined ? `Zona ${valor.numero}` : "");
 }

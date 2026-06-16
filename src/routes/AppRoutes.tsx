@@ -10,6 +10,7 @@ import { ListSecaoEleitoral } from '../pages/SecaoEleitoral/List';
 import { ListUrna } from '../pages/Urna/List';
 import { ListUsuario } from '../pages/Usuario/List';
 import { ListZonaEleitoral } from '../pages/ZonaEleitoral/List';
+import { ListResultado } from '../pages/Resultado/List';
 import { PrivateRoute } from './PrivateRoute';
 
 export const router = createBrowserRouter([
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: 'secao-eleitoral', element: <ListSecaoEleitoral /> },
       { path: 'zona-eleitoral', element: <ListZonaEleitoral /> },
       { path: 'urna', element: <ListUrna /> },
+      { path: 'resultados', element: <ListResultado /> },
       { path: 'usuario', element: <ListUsuario /> },
     ],
   },

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { AlertCircle, FileText, MapPinned, Save, User, X } from "lucide-react";
+import { AlertCircle, FileText, MapPin, MapPinned, Save, User, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -10,6 +10,7 @@ import {
   obterNomeZonaSecao,
   type SecaoEleitoral,
 } from "../../services/secaoEleitoralService";
+import { listarZonasEleitorais, type ZonaEleitoral } from "../../services/zonaEleitoralService";
 
 interface EleitorFormProps {
   eleitor?: Eleitor | null;
@@ -22,6 +23,7 @@ interface EleitorFormData {
   nome: string;
   cpf: string;
   titulo: string;
+  zonaId: number;
   secaoId: number;
 }
 
@@ -32,7 +34,8 @@ export function EleitorForm({
   onSubmit,
 }: EleitorFormProps) {
   const [secoes, setSecoes] = useState<SecaoEleitoral[]>([]);
-  const [erroSecoes, setErroSecoes] = useState("");
+  const [zonas, setZonas] = useState<ZonaEleitoral[]>([]);
+  const [erroListas, setErroListas] = useState("");
 
   const {
     register,
@@ -44,6 +47,7 @@ export function EleitorForm({
       nome: "",
       cpf: "",
       titulo: "",
+      zonaId: 0,
       secaoId: 0,
     },
   });
@@ -52,24 +56,30 @@ export function EleitorForm({
     nome: eleitorAtual?.nome ?? "",
     cpf: eleitorAtual?.cpf ?? "",
     titulo: eleitorAtual?.titulo ?? "",
+    zonaId: eleitorAtual?.zona?.id ?? eleitorAtual?.secao?.zona?.id ?? 0,
     secaoId: eleitorAtual?.secao?.id ?? 0,
   });
 
   useEffect(() => {
-    async function carregarSecoes() {
-      setErroSecoes("");
+    async function carregarListas() {
+      setErroListas("");
 
       try {
-        const dados = await listarSecoesEleitorais();
-        setSecoes(dados);
+        const [secoesDados, zonasDados] = await Promise.all([
+          listarSecoesEleitorais(),
+          listarZonasEleitorais(),
+        ]);
+
+        setSecoes(secoesDados);
+        setZonas(zonasDados);
       } catch (error) {
-        setErroSecoes(
-          error instanceof Error ? error.message : "Erro ao carregar seções eleitorais.",
+        setErroListas(
+          error instanceof Error ? error.message : "Erro ao carregar seções e zonas eleitorais.",
         );
       }
     }
 
-    void carregarSecoes();
+    void carregarListas();
   }, []);
 
   useEffect(() => {
@@ -77,18 +87,19 @@ export function EleitorForm({
   }, [eleitor, reset]);
 
   useEffect(() => {
-    if (!eleitor || secoes.length === 0) {
+    if (!eleitor || secoes.length === 0 || zonas.length === 0) {
       return;
     }
 
     reset(obterValoresFormulario(eleitor));
-  }, [eleitor, secoes.length, reset]);
+  }, [eleitor, secoes.length, zonas.length, reset]);
 
   const submitForm = async (data: EleitorFormData) => {
     await onSubmit({
       nome: data.nome.trim(),
       cpf: data.cpf.trim(),
       titulo: data.titulo.trim(),
+      zonaId: Number(data.zonaId),
       secaoId: Number(data.secaoId),
     });
   };
@@ -98,11 +109,11 @@ export function EleitorForm({
 
   return (
     <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
-      {erroSecoes && (
+      {erroListas && (
         <div className="p-3 rounded-md bg-red-50 border border-red-200">
           <p className="text-sm text-red-700 flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            {erroSecoes}
+            {erroListas}
           </p>
         </div>
       )}
@@ -157,7 +168,7 @@ export function EleitorForm({
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="titulo" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
             <FileText className="w-4 h-4" />
@@ -180,6 +191,37 @@ export function EleitorForm({
             <p className="text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               {errors.titulo.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="zonaId" className="flex items-center gap-2" style={{ color: "#66BB6A" }}>
+            <MapPin className="w-4 h-4" />
+            Zona
+          </Label>
+          <select
+            id="zonaId"
+            className={selectClassName}
+            {...register("zonaId", {
+              required: "Zona é obrigatória",
+              valueAsNumber: true,
+              min: { value: 1, message: "Selecione uma zona" },
+            })}
+          >
+            <option value={0}>
+              {zonas.length > 0 ? "Selecione" : "Nenhuma zona cadastrada"}
+            </option>
+            {zonas.map((zona) => (
+              <option key={zona.id} value={zona.id}>
+                Zona {zona.numero} - {zona.cidade}
+              </option>
+            ))}
+          </select>
+          {errors.zonaId && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.zonaId.message}
             </p>
           )}
         </div>

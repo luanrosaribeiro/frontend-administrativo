@@ -5,11 +5,14 @@ type SecaoEleitoralResumo = {
   local?: string;
   numero?: string | number;
   nome?: string;
-  zona?: {
-    id?: number;
-    numero?: string | number;
-    nome?: string;
-  };
+  zona?: ZonaEleitoralResumo;
+};
+
+type ZonaEleitoralResumo = {
+  id?: number;
+  numero?: string | number;
+  nome?: string;
+  cidade?: string;
 };
 
 type RelacaoId = {
@@ -21,6 +24,7 @@ export interface Eleitor {
   nome: string;
   cpf: string;
   titulo: string;
+  zona?: ZonaEleitoralResumo;
   secao: SecaoEleitoralResumo;
 }
 
@@ -28,6 +32,7 @@ export interface EleitorFormPayload {
   nome: string;
   cpf: string;
   titulo: string;
+  zonaId: number;
   secaoId: number;
 }
 
@@ -35,6 +40,7 @@ interface EleitorApiPayload {
   nome: string;
   cpf: string;
   titulo: string;
+  zona: RelacaoId;
   secao: RelacaoId;
 }
 
@@ -43,6 +49,7 @@ function montarPayload(eleitor: EleitorFormPayload): EleitorApiPayload {
     nome: eleitor.nome,
     cpf: eleitor.cpf,
     titulo: eleitor.titulo,
+    zona: { id: eleitor.zonaId },
     secao: { id: eleitor.secaoId },
   };
 }
@@ -94,6 +101,30 @@ export function obterNomeSecao(secao?: SecaoEleitoralResumo) {
 
   if (secao.id !== undefined) {
     return `Seção #${secao.id}`;
+  }
+
+  return "";
+}
+
+export function obterNomeZona(zona?: ZonaEleitoralResumo) {
+  if (!zona) {
+    return "";
+  }
+
+  if (zona.cidade && zona.numero !== undefined) {
+    return `Zona ${zona.numero} - ${zona.cidade}`;
+  }
+
+  if (zona.nome) {
+    return zona.nome;
+  }
+
+  if (zona.numero !== undefined) {
+    return `Zona ${zona.numero}`;
+  }
+
+  if (zona.id !== undefined) {
+    return `Zona #${zona.id}`;
   }
 
   return "";

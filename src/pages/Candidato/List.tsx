@@ -9,6 +9,7 @@ import {
   deletarCandidato,
   listarCandidatos,
   obterNomeRelacao,
+  obterNomeZona,
   type Candidato,
   type CandidatoFormPayload,
 } from "../../services/candidatoService";
@@ -51,11 +52,13 @@ export function ListCandidato() {
     return candidatos.filter((candidato) => {
       const partido = obterNomeRelacao(candidato.partido).toLowerCase();
       const cargo = obterNomeRelacao(candidato.cargo).toLowerCase();
+      const zona = obterNomeZona(candidato.zona).toLowerCase();
 
       return (
         candidato.nome.toLowerCase().includes(termo) ||
         partido.includes(termo) ||
         cargo.includes(termo) ||
+        zona.includes(termo) ||
         String(candidato.numero).includes(termo)
       );
     });
@@ -136,7 +139,7 @@ export function ListCandidato() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Buscar candidato por nome, número, partido ou cargo..."
+              placeholder="Buscar candidato por nome, número, partido, cargo ou zona..."
               className="pl-10"
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
@@ -187,6 +190,7 @@ export function ListCandidato() {
             const partido = obterNomeRelacao(candidato.partido);
             const cargo = obterNomeRelacao(candidato.cargo);
             const eleicao = obterNomeRelacao(candidato.eleicao);
+            const zona = obterNomeZona(candidato.zona);
 
             return (
               <Card key={candidato.id ?? candidato.numero} className="hover:shadow-md transition-shadow">
@@ -206,6 +210,7 @@ export function ListCandidato() {
                           {partido && <span>{partido}</span>}
                           {cargo && <span>{cargo}</span>}
                           {eleicao && <span>{eleicao}</span>}
+                          {zona && <span>{zona}</span>}
                         </div>
                       </div>
                     </div>
