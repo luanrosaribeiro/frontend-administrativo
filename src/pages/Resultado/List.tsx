@@ -39,6 +39,7 @@ type FiltrosResultado = {
   eleicaoId: number;
   cargoId: number;
   partidoId: number;
+  uf: string;
 };
 
 function escaparHtml(valor: string) {
@@ -60,6 +61,7 @@ export function ListResultado() {
     eleicaoId: 0,
     cargoId: 0,
     partidoId: 0,
+    uf: "",
   });
   const [erro, setErro] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -133,10 +135,29 @@ export function ListResultado() {
         filtros.cargoId === 0 || candidato?.cargo?.id === filtros.cargoId;
       const correspondePartido =
         filtros.partidoId === 0 || candidato?.partido?.id === filtros.partidoId;
+      const correspondeUf = !filtros.uf || candidato?.uf?.sigla === filtros.uf;
 
-      return correspondeBusca && correspondeCargo && correspondePartido;
+      return correspondeBusca && correspondeCargo && correspondePartido && correspondeUf;
     });
-  }, [busca, filtros.cargoId, filtros.partidoId, resultados]);
+  }, [busca, filtros.cargoId, filtros.partidoId, filtros.uf, resultados]);
+
+  const ufsDisponiveis = useMemo(() => {
+    const ufs = new Map<string, string>();
+
+    resultados.forEach((resultado) => {
+      const uf = resultado.candidato?.uf;
+
+      if (!uf?.sigla) {
+        return;
+      }
+
+      ufs.set(uf.sigla, obterNomeUfResultado(uf));
+    });
+
+    return Array.from(ufs, ([sigla, nome]) => ({ sigla, nome })).sort((ufAtual, proximaUf) =>
+      ufAtual.sigla.localeCompare(proximaUf.sigla),
+    );
+  }, [resultados]);
 
   const resultadosOrdenados = useMemo(() => {
     return [...resultadosFiltrados].sort(
@@ -167,6 +188,7 @@ export function ListResultado() {
       eleicaoId: 0,
       cargoId: 0,
       partidoId: 0,
+      uf: "",
     });
     void carregarResultados(0);
   };
@@ -217,7 +239,6 @@ export function ListResultado() {
         </head>
         <body>
           <h1>Resultados da apuração</h1>
-          <p>Total de votos filtrados: ${totalVotos}</p>
           <table>
             <thead>
               <tr>
@@ -280,7 +301,7 @@ export function ListResultado() {
 
       <Card>
         <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
             <div className="relative md:col-span-2 xl:col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -339,9 +360,31 @@ export function ListResultado() {
                 </option>
               ))}
             </select>
+
+            <select
+              className={selectClassName}
+              value={filtros.uf}
+              onChange={(event) =>
+                setFiltros((filtrosAtuais) => ({
+                  ...filtrosAtuais,
+                  uf: event.target.value,
+                }))
+              }
+            >
+              <option value="">Todas as UFs</option>
+              {ufsDisponiveis.map((uf) => (
+                <option key={uf.sigla} value={uf.sigla}>
+                  {uf.nome}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {(busca || filtros.eleicaoId > 0 || filtros.cargoId > 0 || filtros.partidoId > 0) && (
+          {(busca ||
+            filtros.eleicaoId > 0 ||
+            filtros.cargoId > 0 ||
+            filtros.partidoId > 0 ||
+            filtros.uf) && (
             <div className="flex justify-end mt-4">
               <Button variant="outline" size="sm" onClick={limparFiltros}>
                 <X className="w-4 h-4" />
